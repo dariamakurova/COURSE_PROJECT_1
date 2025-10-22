@@ -1,7 +1,7 @@
 import datetime
 import re
-# import os
-# from utils import open_excel
+import os
+from utils import open_excel
 
 def get_greeting(date_string: str) -> str:
     """  Функция, которая аринимает на вход строку с датой и временем в формате YYYY-MM-DD HH:MM:SS
@@ -37,29 +37,38 @@ def get_last_digits(transactions: list[dict]) -> list:
 def get_total_spent(transactions: list[dict], last_digits: str) -> float:
     """ Подсчет общей суммы расходов по заданной карте """
 
-    try: card_transactions = [transaction
-                         for transaction in transactions
-                         if isinstance(transaction.get("Номер карты"), str)
-                         and re.search(last_digits, transaction["Номер карты"], re.IGNORECASE)]
-    except KeyError
+    total_spent = 0.0
 
-    total_spent = sum([card_transaction["Сумма платежа"] * (-1)
-                       for card_transaction
-                       in card_transactions
-                       if card_transaction.get("Сумма платежа") and int(card_transaction["Сумма платежа"]) < 0])
+    for transaction in transactions:
+        card_number = transaction.get("Номер карты")
+        amount = transaction.get("Сумма платежа")
 
-    return total_spent
+        if isinstance(card_number, str) and card_number.endswith(last_digits):
+            try:
+                value = float(str(amount).replace(',', '.'))
+                if value < 0:  # учитываем только расходы
+                    total_spent += abs(value)
+            except (TypeError, ValueError):
+                continue
 
+    return round(total_spent, 2)
 
-# if __name__ == "__main__":
-#
-#     get_greeting(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-#
-#     path = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "operations.xlsx")
-#     transactions = open_excel(path)
-#
-#     list_of_last_digits = get_last_digits(transactions)
-#     print(list_of_last_digits)
-#
-#     for number in list_of_last_digits:
-#         print (f'{number}: {get_total_spent(transactions, number)}')
+def get_cashback(total_spent: float) -> float:
+    """ Расчет кэшбека - 1 руб. за каждые потраченные 100 руб."""
+
+    cashback = total_spent / 100
+
+    return round(cashback, 2)
+
+if __name__ == "__main__":
+
+    get_greeting(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+    path = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "operations.xlsx")
+    transactions = open_excel(path)
+
+    list_of_last_digits = get_last_digits(transactions)
+    print(list_of_last_digits)
+
+    for number in list_of_last_digits:
+        print (f'{number}: {get_total_spent(transactions, number)} {get_cashback(get_total_spent(transactions, number))}')
