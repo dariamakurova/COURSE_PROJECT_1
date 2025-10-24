@@ -1,5 +1,5 @@
 import datetime
-import re
+import pandas as pd
 import os
 from utils import open_excel
 
@@ -60,6 +60,27 @@ def get_cashback(total_spent: float) -> float:
 
     return round(cashback, 2)
 
+
+def get_top_5_by_spent(transactions: list[dict]) -> list[dict]:
+    """ Функция, которая возвращает топ-5 транзакций по расходам """
+
+    df = pd.DataFrame(transactions)
+    df["Сумма операции"] = pd.to_numeric(df["Сумма операции"], errors="coerce")
+    df = df.dropna(subset=["Сумма операции"])
+
+    transactions_sorted = df.sort_values(by='Сумма операции', ascending=False).head(5)
+    top_5_transactions = []
+    for _, transaction in transactions_sorted.iterrows():
+        try:
+            date = (datetime.datetime.strptime(transaction["Дата операции"], "%d.%m.%Y %H:%M:%S")).strftime("%d.%m.%Y")
+            transaction_info = {"date": date, "amount": transaction.get("Сумма операции"),
+                                "category": transaction.get("Категория"), "description": transaction.get("Описание")}
+            top_5_transactions.append(transaction_info)
+        except (KeyError, ValueError):
+            continue
+
+    return top_5_transactions
+
 if __name__ == "__main__":
 
     get_greeting(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -67,8 +88,11 @@ if __name__ == "__main__":
     path = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "operations.xlsx")
     transactions = open_excel(path)
 
-    list_of_last_digits = get_last_digits(transactions)
-    print(list_of_last_digits)
+    # list_of_last_digits = get_last_digits(transactions)
+    # print(list_of_last_digits)
+    #
+    # for number in list_of_last_digits:
+    #     print (f'{number}: {get_total_spent(transactions, number)} {get_cashback(get_total_spent(transactions, number))}')
 
-    for number in list_of_last_digits:
-        print (f'{number}: {get_total_spent(transactions, number)} {get_cashback(get_total_spent(transactions, number))}')
+    # print (transactions)
+    print(get_top_5_by_spent(transactions))
