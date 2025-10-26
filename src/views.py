@@ -1,7 +1,7 @@
 import datetime
 import pandas as pd
-import os
-from utils import open_excel
+# import os
+# from utils import open_excel
 
 def get_greeting(date_string: str) -> str:
     """  Функция, которая аринимает на вход строку с датой и временем в формате YYYY-MM-DD HH:MM:SS
@@ -56,24 +56,26 @@ def get_total_spent(transactions: list[dict], last_digits: str) -> float:
 def get_cashback(total_spent: float) -> float:
     """ Расчет кэшбека - 1 руб. за каждые потраченные 100 руб."""
 
-    cashback = total_spent / 100
-
-    return round(cashback, 2)
+    if total_spent:
+        cashback = total_spent / 100
+        return round(cashback, 2)
+    else:
+        return 0
 
 
 def get_top_5_by_spent(transactions: list[dict]) -> list[dict]:
     """ Функция, которая возвращает топ-5 транзакций по расходам """
 
     df = pd.DataFrame(transactions)
-    df["Сумма операции"] = pd.to_numeric(df["Сумма операции"], errors="coerce")
-    df = df.dropna(subset=["Сумма операции"])
+    df["Сумма платежа"] = pd.to_numeric(df["Сумма платежа"], errors="coerce")
+    df = df.dropna(subset=["Сумма платежа"])
 
-    transactions_sorted = df.sort_values(by='Сумма операции', ascending=False).head(5)
+    transactions_sorted = df.sort_values(by='Сумма платежа', ascending=True).head(5)
     top_5_transactions = []
     for _, transaction in transactions_sorted.iterrows():
         try:
             date = (datetime.datetime.strptime(transaction["Дата операции"], "%d.%m.%Y %H:%M:%S")).strftime("%d.%m.%Y")
-            transaction_info = {"date": date, "amount": transaction.get("Сумма операции"),
+            transaction_info = {"date": date, "amount": transaction.get("Сумма платежа"),
                                 "category": transaction.get("Категория"), "description": transaction.get("Описание")}
             top_5_transactions.append(transaction_info)
         except (KeyError, ValueError):
@@ -81,18 +83,18 @@ def get_top_5_by_spent(transactions: list[dict]) -> list[dict]:
 
     return top_5_transactions
 
-if __name__ == "__main__":
-
-    get_greeting(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-
-    path = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "operations.xlsx")
-    transactions = open_excel(path)
-
-    # list_of_last_digits = get_last_digits(transactions)
-    # print(list_of_last_digits)
-    #
-    # for number in list_of_last_digits:
-    #     print (f'{number}: {get_total_spent(transactions, number)} {get_cashback(get_total_spent(transactions, number))}')
-
-    # print (transactions)
-    print(get_top_5_by_spent(transactions))
+# if __name__ == "__main__":
+#
+#     get_greeting(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+#
+#     path = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "operations.xlsx")
+#     transactions = open_excel(path)
+#
+#     # list_of_last_digits = get_last_digits(transactions)
+#     # print(list_of_last_digits)
+#     #
+#     # for number in list_of_last_digits:
+#     #     print (f'{number}: {get_total_spent(transactions, number)} {get_cashback(get_total_spent(transactions, number))}')
+#
+#     # print (transactions)
+#     print(get_top_5_by_spent(transactions))
