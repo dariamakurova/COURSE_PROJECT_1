@@ -1,5 +1,7 @@
 import datetime
+
 import pandas as pd
+
 # import os
 # from utils import open_excel
 
@@ -78,9 +80,8 @@ def get_top_5_by_spent(transactions: list[dict]) -> list[dict]:
             transaction_info = {"date": date, "amount": transaction.get("Сумма платежа"),
                                 "category": transaction.get("Категория"), "description": transaction.get("Описание")}
             top_5_transactions.append(transaction_info)
-        except (KeyError, ValueError):
+        except KeyError:
             continue
-
     return top_5_transactions
 
 # if __name__ == "__main__":
