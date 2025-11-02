@@ -17,7 +17,8 @@ dependencies = [
     "datetime (>=5.5,<6.0)",
     "pytest (>=8.4.2,<9.0.0)",
     "pytest-cov (>=7.0.0,<8.0.0)",
-    "openpyxl (>=3.1.5,<4.0.0)"
+    "openpyxl (>=3.1.5,<4.0.0)",
+    "dotenv (>=0.9.9,<0.10.0)"
 ]
 
 
