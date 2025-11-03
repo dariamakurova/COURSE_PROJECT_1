@@ -22,7 +22,3 @@ def services_simple_search(search_str):
     ]
 
     return json.dumps(result, sort_keys=False, indent=4, ensure_ascii=False)
-
-if __name__ == "__main__":
-
-    print(services_simple_search("линзомат"))
