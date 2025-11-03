@@ -6,7 +6,7 @@ from src.utils import get_greeting, get_cards_info, open_excel, get_top_5_by_spe
     get_stocks_prices_list
 
 
-def views(date: str) -> str:
+def views_main(date: str) -> str:
     """ Функция главной страницы, которая принимает на вход дату в формате YYYY-MM-DD HH:MM:SS
     возвращает json строку с данными на указанную дату"""
 
@@ -32,4 +32,4 @@ def views(date: str) -> str:
 if __name__ == "__main__":
 
     date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(views(date))
+    print(views_main(date))
