@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 import os
 
 from src.utils import get_cashback, get_greeting, get_last_digits, get_top_5_by_spent, get_total_spent, \
-    get_currency_rates, get_stock_price, open_excel
+    get_currency_rates, get_stock_price, open_excel, get_user_currencies, get_user_stocks, get_cards_info, \
+    get_currency_rates_list, get_stocks_prices_list
 
 
 # тесты для get_greeting()
@@ -40,6 +41,9 @@ def test_get_last_digits(testing_transactions):
 
 def test_get_total_spent(testing_transactions):
     assert get_total_spent(testing_transactions, "7197") == 5043.75
+
+def test_get_total_spent_err(testing_transactions):
+    assert get_total_spent(testing_transactions, "0000") == 0
 
 
 # тесты для get_cashback()
@@ -136,7 +140,6 @@ def test_open_excel_no_file():
         assert "Файл не найден" in result
 
 
-
 def test_open_excel_failed():
     fake_file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "fake.xlsx")
     with open (fake_file, 'w') as f:
@@ -145,3 +148,113 @@ def test_open_excel_failed():
     with patch('src.utils.pd.read_excel', side_effect=ValueError("Ошибка чтения файла")):
         result = open_excel(fake_file)
         assert result == []
+
+
+# тесты для get_user_currencies
+
+def test_get_user_currencies():
+    file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "user_settings_test.json")
+    assert get_user_currencies(file) == ["USD", "EUR"]
+
+
+def test_get_user_currencies_wrong():
+    file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "test_wrong.json")
+    assert get_user_currencies(file) == []
+    path_log = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "utils.log")
+    with open(path_log, "r") as f:
+        result = f.read()
+        assert "Отсутствуют данные или неверный формат" in result
+
+
+def test_get_user_currencies_no_file():
+    file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "no_file.json")
+    assert get_user_currencies(file) == []
+    path_log = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "utils.log")
+    with open(path_log, "r") as f:
+        result = f.read()
+        assert "Файл не найден" in result
+
+
+def test_get_user_currencies_type_err():
+    file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "not.json")
+    assert get_user_currencies(file) == []
+    path_log = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "utils.log")
+    with open(path_log, "r") as f:
+        result = f.read()
+        assert "Отсутствуют данные или неверный формат" in result
+
+
+# тесты для get_user_stocks
+
+def test_get_user_stocks():
+    file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "user_settings_test.json")
+    assert get_user_stocks(file) == ["AAPL", "AMZN", "GOOGL"]
+
+
+def test_get_user_stocks_wrong():
+    file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "test_wrong.json")
+    assert get_user_stocks(file) == []
+    path_log = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "utils.log")
+    with open(path_log, "r") as f:
+        result = f.read()
+        assert "Отсутствуют данные или неверный формат" in result
+
+
+def test_get_user_stocks_no_file():
+    file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "no_file.json")
+    assert get_user_stocks(file) == []
+    path_log = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "utils.log")
+    with open(path_log, "r") as f:
+        result = f.read()
+        assert "Файл не найден" in result
+
+
+def test_get_user_stocks_type_err():
+    file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "not.json")
+    assert get_user_stocks(file) == []
+    path_log = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "utils.log")
+    with open(path_log, "r") as f:
+        result = f.read()
+        assert "Отсутствуют данные или неверный формат" in result
+
+
+# тесты для get_cards_info
+
+def test_get_cards_info(testing_transactions):
+    assert get_cards_info(testing_transactions) == [{'last_digits': '7197',
+                                                     'total_spent': 5043.75,
+                                                     'cashback': 50.44},
+                                                    {'last_digits': '5814',
+                                                     'total_spent': 316.0,
+                                                     'cashback': 3.16}]
+
+
+def test_get_cards_info_no_cards():
+    assert get_cards_info([]) == []
+
+
+# тесты для get_currency_rates_list
+
+def test_get_currency_rates_list():
+    file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "user_settings_test.json")
+    assert get_currency_rates_list(file) == [{'currency': 'USD', 'rate': 80.8449},
+                                             {'currency': 'EUR', 'rate': 93.524}]
+
+
+def test_get_currency_rates_list_empty():
+    file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "no_file.json")
+    assert get_currency_rates_list(file) == []
+
+
+# тесты для get_stocks_prices_list
+
+def test_get_stocks_prices_list():
+    file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "user_settings_test.json")
+    assert get_stocks_prices_list(file) == [{'stock': 'AAPL', 'price': 269.05},
+                                            {'stock': 'AMZN', 'price': 254.0},
+                                            {'stock': 'GOOGL', 'price': 283.72}]
+
+
+def test_gget_stocks_prices_list_empty():
+    file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "no_file.json")
+    assert get_stocks_prices_list(file) == []

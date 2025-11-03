@@ -90,7 +90,9 @@ def get_total_spent(transactions: list[dict], last_digits: str) -> float:
             except (TypeError, ValueError):
                 utils_logger.error("Ошибка данных")
                 continue
-    utils_logger.info("Общая сумма расходов по карте посчитана")
+            utils_logger.info("Общая сумма расходов по карте посчитана")
+        else:
+            utils_logger.info("Несуществующая карта")
     return round(total_spent, 2)
 
 def get_cashback(total_spent: float) -> float:
@@ -168,56 +170,89 @@ def get_stock_price(company_code: str) -> float | None:
         return None
 
 
-def get_user_currencies(file) -> None:
-    """ Получение пользовательских настроект для валют """
+def get_user_currencies(file) -> list:
+    """ Получение пользовательских настроек для валют """
 
-    data = json.load(file)
-    user_currencies = data["user_currencies"]
-    return user_currencies
+    try:
+        with open(file) as f:
+            try:
+                data = json.load(f)
+                try:
+                    user_currencies = data["user_currencies"]
+                    if isinstance(user_currencies, list):
+                        utils_logger.info("Получены настройки валют пользователя")
+                        return user_currencies
+                except KeyError:
+                    utils_logger.error("Отсутствуют данные или неверный формат")
+                    return[]
+                except TypeError:
+                    utils_logger.error("Отсутствуют данные или неверный формат")
+                    return []
+            except json.JSONDecodeError:
+                utils_logger.error("Ошибка форматирования json файла")
+                return []
+    except FileNotFoundError:
+        utils_logger.error("Файл не найден")
+        return []
 
-def get_user_stocks(file) -> None:
-    """ Получение пользовательских настроект для котировок """
 
-    data = json.load(file)
-    user_stocks = data["user_stocks"]
-    return user_stocks
 
-def get_cards_info(transactions: list, cards: list) -> list[dict]:
+def get_user_stocks(file) -> list:
+    """ Получение пользовательских настроек для котировок """
+
+    try:
+        with open(file) as f:
+            try:
+                data = json.load(f)
+                try:
+                    user_currencies = data["user_stocks"]
+                    if isinstance(user_currencies, list):
+                        utils_logger.info("Получены настройки котировок пользователя")
+                        return user_currencies
+                except KeyError:
+                    utils_logger.error("Отсутствуют данные или неверный формат")
+                    return []
+                except TypeError:
+                    utils_logger.error("Отсутствуют данные или неверный формат")
+                    return []
+            except json.JSONDecodeError:
+                utils_logger.error("Ошибка форматирования json файла")
+                return []
+    except FileNotFoundError:
+        utils_logger.error("Файл не найден")
+        return []
+
+def get_cards_info(transactions: list[dict]) -> list:
     """ Собирает информацию по картам: последние 4 цифры, общая сумма расходов, кэшбек"""
 
+    cards = get_last_digits(transactions)
     cards_info = []
     for card in cards:
-        cards_info.append({"last_digits": card},
-                          {"total_spent": get_total_spent(transactions, str(card))})
+        cards_info.append({"last_digits": card,
+                          "total_spent": get_total_spent(transactions, str(card)),
+                           "cashback": get_cashback(get_total_spent(transactions, str(card)))})
+    return cards_info
 
 
-if __name__ == "__main__":
-#
-#     get_greeting(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-#
-#     path = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "operations.xlsx")
-#     transactions = open_excel(path)
-#
-#     # list_of_last_digits = get_last_digits(transactions)
-#     # print(list_of_last_digits)
-#     #
-#     # for number in list_of_last_digits:
-#     #     print (f'{number}: {get_total_spent(transactions, number)} {get_cashback(get_total_spent(transactions, number))}')
-#
-#     # print (transactions)
-#     print(get_top_5_by_spent(transactions))
+def get_currency_rates_list(file) -> list:
+    """ Собирает список словарей с информацией о курсе обмена валют """
 
-    # print(get_currency_rates('USD'))
-    # print(get_currency_rates('EUR'))
+    user_currencies = get_user_currencies(file)
+    currency_rates = []
 
-    print(get_stock_price("AAPL"))
-    print(get_stock_price("GOOGL"))
-    print(get_stock_price("MSFT"))
-    print(get_stock_price("AMZN"))
-    print(get_stock_price("TSLA"))
+    for user_currency in user_currencies:
+        currency_rates.append({"currency": user_currency, "rate": get_currency_rates(user_currency)})
 
-#
-# if __name__ == "__main__":
-#     path = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "operations.xlsx")
-#     print(open_excel(path))
+    return currency_rates
 
+
+def get_stocks_prices_list(file) -> list:
+    """ Собирает список словарей с информацией о котировках """
+
+    user_stocks = get_user_stocks(file)
+    stocks_prices = []
+
+    for user_stock in user_stocks:
+      stocks_prices.append({"stock": user_stock, "price": get_stock_price(user_stock)})
+
+    return stocks_prices
