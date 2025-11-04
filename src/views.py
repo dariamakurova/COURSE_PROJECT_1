@@ -3,7 +3,7 @@ import json
 import os
 
 from src.utils import get_greeting, get_cards_info, open_excel, get_top_5_by_spent, get_currency_rates_list, \
-    get_stocks_prices_list
+    get_stocks_prices_list, get_transactions_for_period
 
 
 def views_main(date: str) -> str:
@@ -13,7 +13,8 @@ def views_main(date: str) -> str:
     greeting = get_greeting(date)
 
     transactions_xlsx = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "operations.xlsx")
-    transactions = open_excel(transactions_xlsx)
+    all_transactions = open_excel(transactions_xlsx)
+    transactions = get_transactions_for_period(date, all_transactions)
 
     user_settings_file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "user_settings.json")
 

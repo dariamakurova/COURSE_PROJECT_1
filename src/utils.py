@@ -32,6 +32,31 @@ def open_excel(file: str) -> list[dict]:
         return []
     return transactions
 
+def get_transactions_for_period(date: str, transactions: list) -> list:
+    """ Функция, которая фильтрует транзации на текущий месяц от заданной даты """
+
+    date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+    utils_logger.info("Обработка входящей даты")
+    start_date = date_obj.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    filtered_transactions = []
+    for transaction in transactions:
+        transaction_date_str = transaction.get("Дата операции")
+        if not transaction_date_str:
+            continue
+
+        try:
+            transaction_date = datetime.datetime.strptime(transaction_date_str, "%d.%m.%Y %H:%M:%S")
+        except ValueError:
+            utils_logger.error("Некорректный формат даты в транзакции")
+            continue
+
+        if start_date <= transaction_date < date_obj:
+            filtered_transactions.append(transaction)
+
+        utils_logger.info("Сформирован список трназакций за указанный период")
+
+    return filtered_transactions
 
 
 def get_greeting(date_string: str) -> str:
@@ -111,24 +136,27 @@ def get_cashback(total_spent: float) -> float:
 def get_top_5_by_spent(transactions: list[dict]) -> list[dict]:
     """ Функция, которая возвращает топ-5 транзакций по расходам """
 
-    df = pd.DataFrame(transactions)
-    df["Сумма платежа"] = pd.to_numeric(df["Сумма платежа"], errors="coerce")
-    df = df.dropna(subset=["Сумма платежа"])
-    utils_logger.info("Сотрируем транзакции по сумме платежа по убыванию")
-    transactions_sorted = df.sort_values(by='Сумма платежа', ascending=True).head(5)
-    utils_logger.info("Формируем список топ-5 по расходам")
-    top_5_transactions = []
-    for _, transaction in transactions_sorted.iterrows():
-        try:
-            utils_logger.info("Получаем сведения о транзакциях")
-            date = (datetime.datetime.strptime(transaction["Дата операции"], "%d.%m.%Y %H:%M:%S")).strftime("%d.%m.%Y")
-            transaction_info = {"date": date, "amount": transaction.get("Сумма платежа"),
-                                "category": transaction.get("Категория"), "description": transaction.get("Описание")}
-            top_5_transactions.append(transaction_info)
-        except KeyError:
-            utils_logger.error("Ошибка получения данных о транзакции")
-            continue
-    utils_logger.info("Список топ-5 транзакций сформирован")
+    if transactions:
+        df = pd.DataFrame(transactions)
+        df["Сумма платежа"] = pd.to_numeric(df["Сумма платежа"], errors="coerce")
+        df = df.dropna(subset=["Сумма платежа"])
+        utils_logger.info("Сотрируем транзакции по сумме платежа по убыванию")
+        transactions_sorted = df.sort_values(by='Сумма платежа', ascending=True).head(5)
+        utils_logger.info("Формируем список топ-5 по расходам")
+        top_5_transactions = []
+        for _, transaction in transactions_sorted.iterrows():
+            try:
+                utils_logger.info("Получаем сведения о транзакциях")
+                date = (datetime.datetime.strptime(transaction["Дата операции"], "%d.%m.%Y %H:%M:%S")).strftime("%d.%m.%Y")
+                transaction_info = {"date": date, "amount": transaction.get("Сумма платежа"),
+                                    "category": transaction.get("Категория"), "description": transaction.get("Описание")}
+                top_5_transactions.append(transaction_info)
+            except KeyError:
+                utils_logger.error("Ошибка получения данных о транзакции")
+                continue
+        utils_logger.info("Список топ-5 транзакций сформирован")
+    else:
+        top_5_transactions = []
     return top_5_transactions
 
 
@@ -256,3 +284,13 @@ def get_stocks_prices_list(file) -> list:
       stocks_prices.append({"stock": user_stock, "price": get_stock_price(user_stock)})
 
     return stocks_prices
+
+
+if __name__ == "__main__":
+
+    date = "2021-12-05 22:12:11"
+    transactions_xlsx = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "operations.xlsx")
+    all_transactions = open_excel(transactions_xlsx)
+    transactions = get_transactions_for_period(date, all_transactions)
+
+    print(get_top_5_by_spent(transactions))

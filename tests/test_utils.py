@@ -7,7 +7,7 @@ import os
 
 from src.utils import get_cashback, get_greeting, get_last_digits, get_top_5_by_spent, get_total_spent, \
     get_currency_rates, get_stock_price, open_excel, get_user_currencies, get_user_stocks, get_cards_info, \
-    get_currency_rates_list, get_stocks_prices_list
+    get_currency_rates_list, get_stocks_prices_list, get_transactions_for_period
 
 
 # тесты для get_greeting()
@@ -237,7 +237,9 @@ def test_get_cards_info_no_cards():
 
 def test_get_currency_rates_list():
     file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "user_settings_test.json")
-    assert get_currency_rates_list(file) == [{'currency': 'USD', 'rate': 80.8449},
+    with patch("src.utils.get_currency_rates") as mock_cur:
+        mock_cur.side_effect = [80.8449, 93.524]
+        assert get_currency_rates_list(file) == [{'currency': 'USD', 'rate': 80.8449},
                                              {'currency': 'EUR', 'rate': 93.524}]
 
 
@@ -250,7 +252,9 @@ def test_get_currency_rates_list_empty():
 
 def test_get_stocks_prices_list():
     file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "user_settings_test.json")
-    assert get_stocks_prices_list(file) == [{'stock': 'AAPL', 'price': 269.05},
+    with patch("src.utils.get_stock_price") as mock_stock:
+        mock_stock.side_effect = [269.05, 254.0, 283.72]
+        assert get_stocks_prices_list(file) == [{'stock': 'AAPL', 'price': 269.05},
                                             {'stock': 'AMZN', 'price': 254.0},
                                             {'stock': 'GOOGL', 'price': 283.72}]
 
@@ -258,3 +262,21 @@ def test_get_stocks_prices_list():
 def test_gget_stocks_prices_list_empty():
     file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "no_file.json")
     assert get_stocks_prices_list(file) == []
+
+
+# тесты для get_transactions_for_period
+
+def test_get_transactions_for_period(dates_transactions):
+    assert (get_transactions_for_period("2018-02-18 23:12:55", dates_transactions) ==
+            [{'Дата операции': '01.02.2018 00:00:01',
+              'Дата платежа': '04.02.2018',
+              'Номер карты': '*7197'},
+             {'Дата операции': '03.02.2018 14:55:21',
+              'Дата платежа': '05.02.2018',
+              'Номер карты': '*7197'},
+             {'Дата операции': '05.02.2018 20:27:51',
+              'Дата платежа': '04.02.2018',
+              'Номер карты': '*5814'},
+             {'Дата операции': '11.02.2018 00:00:00',
+              'Дата платежа': '13.02.2018',
+              'Номер карты': '*7197'}])
