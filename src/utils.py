@@ -293,15 +293,3 @@ def transfer_into_dataframe(transactions_list: list) -> pd.DataFrame:
         return df
     except Exception as e:
         utils_logger.error(f"Ошибка преобразования файла: {e}")
-
-
-
-
-if __name__ == "__main__":
-
-    date = "2021-12-05 22:12:11"
-    transactions_xlsx = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "operations.xlsx")
-    all_transactions = open_excel(transactions_xlsx)
-    transactions = get_transactions_for_period(date, all_transactions)
-
-    print(get_top_5_by_spent(transactions))
