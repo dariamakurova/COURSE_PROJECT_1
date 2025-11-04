@@ -286,6 +286,17 @@ def get_stocks_prices_list(file) -> list:
     return stocks_prices
 
 
+def transfer_into_dataframe(transactions_list: list) -> pd.DataFrame:
+    """ Функция, которая преобразует список транзакций в DataFrame """
+    try:
+        df = pd.DataFrame(transactions_list)
+        return df
+    except Exception as e:
+        utils_logger.error(f"Ошибка преобразования файла: {e}")
+
+
+
+
 if __name__ == "__main__":
 
     date = "2021-12-05 22:12:11"

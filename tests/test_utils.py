@@ -1,5 +1,6 @@
 from math import nan
 from unittest.mock import patch
+import pandas as pd
 
 import pytest
 from dotenv import load_dotenv
@@ -7,7 +8,7 @@ import os
 
 from src.utils import get_cashback, get_greeting, get_last_digits, get_top_5_by_spent, get_total_spent, \
     get_currency_rates, get_stock_price, open_excel, get_user_currencies, get_user_stocks, get_cards_info, \
-    get_currency_rates_list, get_stocks_prices_list, get_transactions_for_period
+    get_currency_rates_list, get_stocks_prices_list, get_transactions_for_period, transfer_into_dataframe
 
 
 # тесты для get_greeting()
@@ -280,3 +281,18 @@ def test_get_transactions_for_period(dates_transactions):
              {'Дата операции': '11.02.2018 00:00:00',
               'Дата платежа': '13.02.2018',
               'Номер карты': '*7197'}])
+
+
+def test_transfer_into_dataframe(testing_transactions):
+    df = transfer_into_dataframe(testing_transactions)
+
+    assert df.shape[0] == len(testing_transactions)
+    assert df.shape[1] == len(testing_transactions[0])
+
+    for i, transaction in enumerate(testing_transactions):
+        for key, value in transaction.items():
+            df_value = df.loc[i, key]
+            if pd.isna(value):
+                assert pd.isna(df_value)
+            else:
+                assert df_value == value
