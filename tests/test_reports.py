@@ -6,7 +6,7 @@ from dateutil.relativedelta import relativedelta
 
 import pandas as pd
 
-from src.reports import spending_by_category
+from src.reports import spending_by_category, report_spending_by_category
 
 
 def test_spending_by_category(testing_transactions_categories):
@@ -24,4 +24,9 @@ def test_spending_by_category(testing_transactions_categories):
         operation_date = datetime.datetime.strptime(date_str, "%d.%m.%Y %H:%M:%S")
         assert start_date <= operation_date <= end_date
 
+
+def test_report_spending_by_category():
+    df = pd.DataFrame({"Операция" : ["Покупка", "Перевод", "Покупка"], "Сумма" : [200, 350, 561]})
+    report = json.loads(report_spending_by_category(df))
+    assert df.shape[0] == len(report)
 
