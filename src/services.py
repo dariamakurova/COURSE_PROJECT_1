@@ -34,4 +34,7 @@ def services_simple_search(search_str: str, transactions: list[dict]) -> str:
     except Exception as e:
         services_logger.error(f"Ошибка {e}")
 
+    if not result:
+        services_logger.info("Ничего не найдено")
+
     return json.dumps(result, sort_keys=False, indent=4, ensure_ascii=False)
