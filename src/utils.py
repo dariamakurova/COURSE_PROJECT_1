@@ -206,7 +206,7 @@ def get_stock_price(company_code: str) -> float | None:
         return None
 
 
-def get_user_currencies(file) -> list:
+def get_user_currencies(file: str) -> list:
     """Получение пользовательских настроек для валют"""
 
     try:
@@ -218,6 +218,8 @@ def get_user_currencies(file) -> list:
                     if isinstance(user_currencies, list):
                         utils_logger.info("Получены настройки валют пользователя")
                         return user_currencies
+                    else:
+                        return []
                 except KeyError:
                     utils_logger.error("Отсутствуют данные или неверный формат")
                     return []
@@ -232,7 +234,7 @@ def get_user_currencies(file) -> list:
         return []
 
 
-def get_user_stocks(file) -> list:
+def get_user_stocks(file: str) -> list:
     """Получение пользовательских настроек для котировок"""
 
     try:
@@ -244,6 +246,8 @@ def get_user_stocks(file) -> list:
                     if isinstance(user_currencies, list):
                         utils_logger.info("Получены настройки котировок пользователя")
                         return user_currencies
+                    else:
+                        return []
                 except KeyError:
                     utils_logger.error("Отсутствуют данные или неверный формат")
                     return []
@@ -274,7 +278,7 @@ def get_cards_info(transactions: list[dict]) -> list:
     return cards_info
 
 
-def get_currency_rates_list(file) -> list:
+def get_currency_rates_list(file: str) -> list:
     """Собирает список словарей с информацией о курсе обмена валют"""
 
     user_currencies = get_user_currencies(file)
@@ -286,7 +290,7 @@ def get_currency_rates_list(file) -> list:
     return currency_rates
 
 
-def get_stocks_prices_list(file) -> list:
+def get_stocks_prices_list(file: str) -> list:
     """Собирает список словарей с информацией о котировках"""
 
     user_stocks = get_user_stocks(file)
@@ -305,3 +309,4 @@ def transfer_into_dataframe(transactions_list: list) -> pd.DataFrame:
         return df
     except Exception as e:
         utils_logger.error(f"Ошибка преобразования файла: {e}")
+        return pd.DataFrame({})

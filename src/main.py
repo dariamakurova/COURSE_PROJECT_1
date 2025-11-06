@@ -1,7 +1,7 @@
 # запускаем программу по сбору данных
 import os
 
-from src.reports import spending_by_category, excel_creator_default, excel_creator_filename
+from src.reports import excel_creator_default, excel_creator_filename, spending_by_category
 from src.services import services_simple_search
 from src.utils import open_excel, transfer_into_dataframe
 from src.views import views_main

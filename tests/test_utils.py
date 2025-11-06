@@ -12,13 +12,16 @@ from src.utils import (get_cards_info, get_cashback, get_currency_rates, get_cur
 
 # тесты для get_greeting()
 
+
 @pytest.mark.parametrize(
     "date, greeting",
-                         [("2025-06-23 02:33:54", "Доброй ночи"),
-                          ("2025-06-23 11:59:59", "Доброе утро"),
-                          ("2025-06-23 15:05:00", "Добрый день"),
-                          ("2025-06-23 19:06:10", "Добрый вечер")])
-
+    [
+        ("2025-06-23 02:33:54", "Доброй ночи"),
+        ("2025-06-23 11:59:59", "Доброе утро"),
+        ("2025-06-23 15:05:00", "Добрый день"),
+        ("2025-06-23 19:06:10", "Добрый вечер"),
+    ],
+)
 def test_get_greeting(date, greeting):
     assert get_greeting(date) == greeting
 

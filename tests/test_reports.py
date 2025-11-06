@@ -1,12 +1,10 @@
 import datetime
-import json
 import os
-from importlib.metadata import pass_none
 
 import pandas as pd
 from dateutil.relativedelta import relativedelta
 
-from src.reports import spending_by_category, excel_creator_default, excel_creator_filename
+from src.reports import excel_creator_default, excel_creator_filename, spending_by_category
 
 
 def test_spending_by_category(testing_transactions_categories):
@@ -27,10 +25,10 @@ def test_spending_by_category(testing_transactions_categories):
 
 def test_excel_creator_default():
     @excel_creator_default
-
     def func():
         df = pd.DataFrame({"Операция": ["Покупка", "Перевод", "Покупка"], "Сумма": [200, 350, 561]})
         return df
+
     result = func()
     assert os.path.exists(result)
 
@@ -40,8 +38,7 @@ def test_excel_creator_filename():
     def func():
         df = pd.DataFrame({"Операция": ["Покупка", "Перевод", "Покупка"], "Сумма": [200, 350, 561]})
         return df
+
     result = func()
     assert os.path.exists(result)
     assert result.endswith("тест.xlsx")
-
-
