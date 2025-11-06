@@ -6,7 +6,7 @@ from src.views import views_main
 
 def test_views_main(testing_transactions):
 
-    with patch("src.services.open_excel") as mock_file:
+    with patch("src.utils.open_excel") as mock_file:
         mock_file.return_value = testing_transactions
         date = "2018-10-01 21:31:46"
         result_json = views_main(date)
