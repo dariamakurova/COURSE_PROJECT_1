@@ -1,18 +1,25 @@
 import json
+import logging
 import os
 import re
 
-from src.utils import open_excel
+
+services_logger = logging.getLogger("services_logger")
+logger_file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "services.log")
+services_handler = logging.FileHandler(logger_file, mode="w")
+services_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s: %(message)s")
+services_handler.setFormatter(services_formatter)
+services_logger.addHandler(services_handler)
+services_logger.setLevel(logging.DEBUG)
 
 
-def services_simple_search(search_str):
+def services_simple_search(search_str: str, transactions: list[dict]) -> str:
     """Пользователь передает строку для поиска, возвращается JSON-ответ со всеми транзакциями,
     содержащими запрос в описании или категории"""
 
-    transactions_xlsx = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "operations.xlsx")
-    transactions = open_excel(transactions_xlsx)
-
-    result = [
+    services_logger.info("Поиск соответствующих транзакций")
+    result = []
+    try: result = [
         transaction
         for transaction in transactions
         if (
@@ -24,5 +31,7 @@ def services_simple_search(search_str):
             and re.search(search_str, transaction["Категория"], re.IGNORECASE)
         )
     ]
+    except Exception as e:
+        services_logger.error(f"Ошибка {e}")
 
     return json.dumps(result, sort_keys=False, indent=4, ensure_ascii=False)
