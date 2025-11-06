@@ -18,7 +18,7 @@ date = "2021-08-10 00:00:00"
 print(views_main(date))
 
 # Простой поиск - указать слово для поиска search
-search = "крсота"
+search = "красота"
 print(services_simple_search(search, transactions))
 
 # Отчет по тратам по категории - указать категорию category
