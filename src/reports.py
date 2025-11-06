@@ -124,3 +124,10 @@ def spending_by_category(transactions_df: pd.DataFrame, category: str, date: Opt
     reports_logger.info("Список операций в заданной категории сформирован")
 
     return sorted_transactions
+
+
+def report_spending_by_category(df: pd.DataFrame) -> str | None:
+    """ Преобразование DF в json строку """
+
+    sorted_transactions_json = df.to_json(orient="records", force_ascii=False)
+    return sorted_transactions_json
