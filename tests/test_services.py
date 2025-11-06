@@ -2,7 +2,6 @@ import json
 from unittest.mock import patch
 
 from src.services import services_simple_search
-from tests.conftest import testing_transactions
 
 
 def test_services_simple_search(testing_transactions):

@@ -1,7 +1,6 @@
 import json
 from unittest.mock import patch
 
-from src.services import services_simple_search
 from src.views import views_main
 
 

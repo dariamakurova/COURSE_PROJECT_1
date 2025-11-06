@@ -1,12 +1,12 @@
-import json
-
-from black import datetime
 import datetime
-from dateutil.relativedelta import relativedelta
+import json
+import os
+from importlib.metadata import pass_none
 
 import pandas as pd
+from dateutil.relativedelta import relativedelta
 
-from src.reports import spending_by_category, report_spending_by_category
+from src.reports import spending_by_category, excel_creator_default, excel_creator_filename
 
 
 def test_spending_by_category(testing_transactions_categories):
@@ -25,8 +25,23 @@ def test_spending_by_category(testing_transactions_categories):
         assert start_date <= operation_date <= end_date
 
 
-def test_report_spending_by_category():
-    df = pd.DataFrame({"Операция" : ["Покупка", "Перевод", "Покупка"], "Сумма" : [200, 350, 561]})
-    report = json.loads(report_spending_by_category(df))
-    assert df.shape[0] == len(report)
+def test_excel_creator_default():
+    @excel_creator_default
+
+    def func():
+        df = pd.DataFrame({"Операция": ["Покупка", "Перевод", "Покупка"], "Сумма": [200, 350, 561]})
+        return df
+    result = func()
+    assert os.path.exists(result)
+
+
+def test_excel_creator_filename():
+    @excel_creator_filename(filename="тест")
+    def func():
+        df = pd.DataFrame({"Операция": ["Покупка", "Перевод", "Покупка"], "Сумма": [200, 350, 561]})
+        return df
+    result = func()
+    assert os.path.exists(result)
+    assert result.endswith("тест.xlsx")
+
 

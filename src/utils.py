@@ -1,12 +1,11 @@
+import datetime
 import json
 import logging
-import datetime
 import os
-from locale import currency
 
-from dotenv import load_dotenv
-import requests
 import pandas as pd
+import requests
+from dotenv import load_dotenv
 
 utils_logger = logging.getLogger("utils_logger")
 logger_file = os.path.join((os.path.dirname(os.path.dirname(__file__))), "data", "utils.log")
@@ -25,15 +24,16 @@ def open_excel(file: str) -> list[dict]:
             transactions = pd.read_excel(file).to_dict(orient="records")
             utils_logger.info("Чтение данных из файла")
         except ValueError as e:
-            utils_logger.error("Ошибка получения данных")
+            utils_logger.error(f"Ошибка получения данных {e}")
             return []
     else:
         utils_logger.error("Файл не найден")
         return []
     return transactions
 
+
 def get_transactions_for_period(date: str, transactions: list) -> list:
-    """ Функция, которая фильтрует транзации на текущий месяц от заданной даты """
+    """Функция, которая фильтрует транзации на текущий месяц от заданной даты"""
 
     date_obj = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     utils_logger.info("Обработка входящей даты")
@@ -60,9 +60,9 @@ def get_transactions_for_period(date: str, transactions: list) -> list:
 
 
 def get_greeting(date_string: str) -> str:
-    """  Функция, которая аринимает на вход строку с датой и временем в формате YYYY-MM-DD HH:MM:SS
-     и возвращает приветствие «Доброе утро» / «Добрый день» / «Добрый вечер» / «Доброй ночи»
-     в зависимости от текущего времени. """
+    """Функция, которая аринимает на вход строку с датой и временем в формате YYYY-MM-DD HH:MM:SS
+    и возвращает приветствие «Доброе утро» / «Добрый день» / «Добрый вечер» / «Доброй ночи»
+    в зависимости от текущего времени."""
 
     date_obj = datetime.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S")
     utils_logger.info("Обработка даты")
@@ -81,15 +81,17 @@ def get_greeting(date_string: str) -> str:
 
 
 def get_last_digits(transactions: list[dict]) -> list:
-    """ Получение  списка уникальных номеров карт в виде 4 цифр номера карты из списка транзакций """
+    """Получение  списка уникальных номеров карт в виде 4 цифр номера карты из списка транзакций"""
 
     list_of_numbers = []
     for transaction in transactions:
         try:
             transaction.get("Номер карты")
             utils_logger.info("Поиск номеров карт")
-            if (isinstance(transaction.get("Номер карты"), str)
-                and transaction["Номер карты"][-4:] not in list_of_numbers):
+            if (
+                isinstance(transaction.get("Номер карты"), str)
+                and transaction["Номер карты"][-4:] not in list_of_numbers
+            ):
                 last_digits = transaction["Номер карты"][-4:]
                 list_of_numbers.append(last_digits)
         except KeyError:
@@ -97,8 +99,9 @@ def get_last_digits(transactions: list[dict]) -> list:
     utils_logger.info("Список уникальных номеров карт с 4-мя последними цифрами сформирован")
     return list_of_numbers
 
+
 def get_total_spent(transactions: list[dict], last_digits: str) -> float:
-    """ Подсчет общей суммы расходов по заданной карте """
+    """Подсчет общей суммы расходов по заданной карте"""
 
     total_spent = 0.0
 
@@ -109,7 +112,7 @@ def get_total_spent(transactions: list[dict], last_digits: str) -> float:
         if isinstance(card_number, str) and card_number.endswith(last_digits):
             utils_logger.info("Проверка наличия информации о карте")
             try:
-                value = float(str(amount).replace(',', '.'))
+                value = float(str(amount).replace(",", "."))
                 if value < 0:  # учитываем только расходы
                     total_spent += abs(value)
             except (TypeError, ValueError):
@@ -120,8 +123,9 @@ def get_total_spent(transactions: list[dict], last_digits: str) -> float:
             utils_logger.info("Несуществующая карта")
     return round(total_spent, 2)
 
+
 def get_cashback(total_spent: float) -> float:
-    """ Расчет кэшбека - 1 руб. за каждые потраченные 100 руб."""
+    """Расчет кэшбека - 1 руб. за каждые потраченные 100 руб."""
 
     if total_spent:
         utils_logger.info("Расчет кэшбека")
@@ -134,22 +138,28 @@ def get_cashback(total_spent: float) -> float:
 
 
 def get_top_5_by_spent(transactions: list[dict]) -> list[dict]:
-    """ Функция, которая возвращает топ-5 транзакций по расходам """
+    """Функция, которая возвращает топ-5 транзакций по расходам"""
 
     if transactions:
         df = pd.DataFrame(transactions)
         df["Сумма платежа"] = pd.to_numeric(df["Сумма платежа"], errors="coerce")
         df = df.dropna(subset=["Сумма платежа"])
         utils_logger.info("Сотрируем транзакции по сумме платежа по убыванию")
-        transactions_sorted = df.sort_values(by='Сумма платежа', ascending=True).head(5)
+        transactions_sorted = df.sort_values(by="Сумма платежа", ascending=True).head(5)
         utils_logger.info("Формируем список топ-5 по расходам")
         top_5_transactions = []
         for _, transaction in transactions_sorted.iterrows():
             try:
                 utils_logger.info("Получаем сведения о транзакциях")
-                date = (datetime.datetime.strptime(transaction["Дата операции"], "%d.%m.%Y %H:%M:%S")).strftime("%d.%m.%Y")
-                transaction_info = {"date": date, "amount": transaction.get("Сумма платежа"),
-                                    "category": transaction.get("Категория"), "description": transaction.get("Описание")}
+                date = (datetime.datetime.strptime(transaction["Дата операции"], "%d.%m.%Y %H:%M:%S")).strftime(
+                    "%d.%m.%Y"
+                )
+                transaction_info = {
+                    "date": date,
+                    "amount": transaction.get("Сумма платежа"),
+                    "category": transaction.get("Категория"),
+                    "description": transaction.get("Описание"),
+                }
                 top_5_transactions.append(transaction_info)
             except KeyError:
                 utils_logger.error("Ошибка получения данных о транзакции")
@@ -169,7 +179,7 @@ def get_currency_rates(currency_code: str) -> float | None:
 
     try:
         utils_logger.info("Получение данных о курсах")
-        url = f'https://v6.exchangerate-api.com/v6/{API_KEY}/latest/{currency_code}'
+        url = f"https://v6.exchangerate-api.com/v6/{API_KEY}/latest/{currency_code}"
         response = requests.get(url)
         return float(response.json()["conversion_rates"]["RUB"])
     except requests.exceptions.RequestException:
@@ -177,10 +187,8 @@ def get_currency_rates(currency_code: str) -> float | None:
         return None
 
 
-
-
 def get_stock_price(company_code: str) -> float | None:
-    """ Получение стоимости акций компании """
+    """Получение стоимости акций компании"""
 
     load_dotenv()
     SP500_API_KEY = os.getenv("SP500_API_KEY")
@@ -190,16 +198,16 @@ def get_stock_price(company_code: str) -> float | None:
         utils_logger.info("Запрос котировок")
         url = f"https://finnhub.io/api/v1/quote?symbol={company_code}&token={API_KEY}"
         response = requests.get(url)
-        response =  response.json()
+        response = response.json()
         utils_logger.info("Котировки получены")
-        return float(response['c'])
+        return float(response["c"])
     except requests.exceptions.RequestException:
         utils_logger.error("Ошибка получения котировок")
         return None
 
 
 def get_user_currencies(file) -> list:
-    """ Получение пользовательских настроек для валют """
+    """Получение пользовательских настроек для валют"""
 
     try:
         with open(file) as f:
@@ -212,7 +220,7 @@ def get_user_currencies(file) -> list:
                         return user_currencies
                 except KeyError:
                     utils_logger.error("Отсутствуют данные или неверный формат")
-                    return[]
+                    return []
                 except TypeError:
                     utils_logger.error("Отсутствуют данные или неверный формат")
                     return []
@@ -224,9 +232,8 @@ def get_user_currencies(file) -> list:
         return []
 
 
-
 def get_user_stocks(file) -> list:
-    """ Получение пользовательских настроек для котировок """
+    """Получение пользовательских настроек для котировок"""
 
     try:
         with open(file) as f:
@@ -250,20 +257,25 @@ def get_user_stocks(file) -> list:
         utils_logger.error("Файл не найден")
         return []
 
+
 def get_cards_info(transactions: list[dict]) -> list:
-    """ Собирает информацию по картам: последние 4 цифры, общая сумма расходов, кэшбек"""
+    """Собирает информацию по картам: последние 4 цифры, общая сумма расходов, кэшбек"""
 
     cards = get_last_digits(transactions)
     cards_info = []
     for card in cards:
-        cards_info.append({"last_digits": card,
-                          "total_spent": get_total_spent(transactions, str(card)),
-                           "cashback": get_cashback(get_total_spent(transactions, str(card)))})
+        cards_info.append(
+            {
+                "last_digits": card,
+                "total_spent": get_total_spent(transactions, str(card)),
+                "cashback": get_cashback(get_total_spent(transactions, str(card))),
+            }
+        )
     return cards_info
 
 
 def get_currency_rates_list(file) -> list:
-    """ Собирает список словарей с информацией о курсе обмена валют """
+    """Собирает список словарей с информацией о курсе обмена валют"""
 
     user_currencies = get_user_currencies(file)
     currency_rates = []
@@ -275,19 +287,19 @@ def get_currency_rates_list(file) -> list:
 
 
 def get_stocks_prices_list(file) -> list:
-    """ Собирает список словарей с информацией о котировках """
+    """Собирает список словарей с информацией о котировках"""
 
     user_stocks = get_user_stocks(file)
     stocks_prices = []
 
     for user_stock in user_stocks:
-      stocks_prices.append({"stock": user_stock, "price": get_stock_price(user_stock)})
+        stocks_prices.append({"stock": user_stock, "price": get_stock_price(user_stock)})
 
     return stocks_prices
 
 
 def transfer_into_dataframe(transactions_list: list) -> pd.DataFrame:
-    """ Функция, которая преобразует список транзакций в DataFrame """
+    """Функция, которая преобразует список транзакций в DataFrame"""
     try:
         df = pd.DataFrame(transactions_list)
         return df

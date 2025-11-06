@@ -8,6 +8,8 @@
 Клонируйте репозиторий:
 git clone https://github.com/dariamakurova/COURSE_PROJECT_1
 
+Создайте копию файла .env.example и укажите ваши API-ключи для корректной работы
+
 ## Использование
 
 Приложение позволяет:
